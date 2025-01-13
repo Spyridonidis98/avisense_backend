@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  fastapi:
+    build: .
+    image: fastapi_img 
+    container_name: fastapi_cont
+    command: uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL
+    ports:
+      - "8000:8000"
+    # networks:
+    #   - app-network
+    # depends_on:
+    #   - postgres_db
+
+# networks:
+#   app-network:
+#     external: true # Use the existing network created by postgres compose
+#     name: app-network
