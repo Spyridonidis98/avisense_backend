@@ -11,15 +11,29 @@ def root():
   
 @app.post("/send_position")
 def get_position(data: dict):
+    print(data)
     user = data['user']
-    x = float(data['x'])
-    z = float(data['z'])
+    user_type = data['user_type'] #car, bike, pedestrian 
+    x = float(data['x'])#longitude
+    z = float(data['z'])#latitude
     angle = float(data['angle'])
-    users_position[user] = {'x':x, 'z':z, 'angle':angle} 
-    
+    users_position[user] = {'x':x, 'z':z, 'angle':angle, 'user_type':user_type}    
+
+
     return 'data received'
     
-    
+@app.delete("/delete_user")
+def delete_user(data: dict):
+    print(data)
+    user = data['user']
+    if data['user'] == 'all':
+        users_position = {}
+        return 'deleted all users'
+    elif data['user'] == '':
+        return 'No user name'
+    else:
+        users_position.pop(user)
+    return "user deleted"
 # @app.post("/test_post")
 # def insert_test(data: dict):
 #     a = data['x']
