@@ -24,7 +24,7 @@ def get_position(data: dict):
     
 @app.delete("/delete_user")
 def delete_user(data: dict):
-    print(data)
+    global users_position  
     user = data['user']
     if data['user'] == 'all':
         users_position = {}
