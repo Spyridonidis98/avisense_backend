@@ -1,22 +1,15 @@
 version: '3.8'
 services:
-  fastapi:
+  avisense_backend:
     build: .
-    image: fastapi_img 
-    container_name: fastapi_cont
+    image: backend_img
+    container_name: backend_container
     command: uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
-    environment:
-      - DATABASE_URL
     ports:
       - "8000:8000"
-    # networks:
-    #   - app-network
-    # depends_on:
-    #   - postgres_db
 
-# networks:
-#   app-network:
-#     external: true # Use the existing network created by postgres compose
-#     name: app-network
+#run: sudo docker compose up -d --build --force-recreate 
+# run locally : uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
+

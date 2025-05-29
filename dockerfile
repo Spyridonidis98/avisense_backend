@@ -2,7 +2,7 @@ FROM python:3
 
 RUN pip install fastapi 
 RUN pip install uvicorn
-RUN pip install psycopg2
+RUN pip install python-multipart
 
 WORKDIR /fast_api_tut
 COPY . .
