@@ -25,37 +25,23 @@ class SQLClient:
         """Initialize SQLClient with an existing connection pool"""
         self.connection_pool = connection_pool
 
-    async def save_camera_frame(self, camera_name: str, place_name: str, image_data: str, 
-                              resolution: Optional[str] = None, bytes_size: Optional[str] = None,
-                              position_longitude: Optional[str] = None, position_latitude: Optional[str] = None,
-                              orientation_x: Optional[str] = None, orientation_y: Optional[str] = None,
-                              orientation_z: Optional[str] = None):
+    async def save_camera_frame(self, camera_name: str, place_name: str, image_data: str):
         """Save camera frame data to the database"""
         if not self.connection_pool:
             raise Exception("Database connection pool not provided")
 
         query = """
-            INSERT INTO camera (camera_name, place_name, image_data, resolution, bytes_size, 
-                              position_longitude, position_latitude, orientation_x, orientation_y, orientation_z)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            INSERT INTO camera (camera_name, place_name, image_data)
+            VALUES ($1, $2, $3)
             ON CONFLICT (camera_name, place_name) 
             DO UPDATE SET 
-                image_data = EXCLUDED.image_data,
-                resolution = EXCLUDED.resolution,
-                bytes_size = EXCLUDED.bytes_size,
-                position_longitude = EXCLUDED.position_longitude,
-                position_latitude = EXCLUDED.position_latitude,
-                orientation_x = EXCLUDED.orientation_x,
-                orientation_y = EXCLUDED.orientation_y,
-                orientation_z = EXCLUDED.orientation_z
+                image_data = EXCLUDED.image_data
         """
         
         try:
             async with self.connection_pool.acquire() as connection:
                 await connection.execute(
-                    query, camera_name, place_name, image_data, resolution, bytes_size,
-                    position_longitude, position_latitude, orientation_x, orientation_y, orientation_z
-                )
+                    query, camera_name, place_name, image_data)
                 print(f"Camera frame saved successfully: {camera_name} at {place_name}")
                 return True
         except Exception as e:
@@ -69,7 +55,7 @@ class SQLClient:
 
         query = """
             SELECT camera_name, place_name, image_data, resolution, bytes_size,
-                   position_longitude, position_latitude, orientation_x, orientation_y, orientation_z
+                   position_longitude, position_latitude, position_height, orientation_x, orientation_y, orientation_z
             FROM camera 
             WHERE place_name = $1
         """
@@ -83,14 +69,13 @@ class SQLClient:
                 for row in rows:
                     camera_name = row['camera_name']
                     cameras[camera_name] = {
-                        'camera_data': row['image_data'],
-                        'content_type': 'image/jpeg',  # Assuming JPEG format
-                        'filename': f'{camera_name}.jpg',
+                        'camera_name': row['camera_name'],
+                        'place_name': row['place_name'],
+                        'image_data': row['image_data'],
                         'size': len(row['image_data']) if row['image_data'] else 0,
-                        'resolution': row['resolution'],
                         'position_longitude': row['position_longitude'],
                         'position_latitude': row['position_latitude'],
-                        'orientation_x': row['orientation_x'],
+                        'position_height': row['position_height'],
                         'orientation_y': row['orientation_y'],
                         'orientation_z': row['orientation_z']
                     }
@@ -186,6 +171,45 @@ class SQLClient:
                 
         except Exception as e:
             print(f"Error loading place: {e}")
+            raise
+
+    async def save_camera_position(self, camera_name: str, place_name: str, 
+                                 position_latitude: str, position_longitude: str, 
+                                 position_height: str, orientation_z: str, 
+                                 orientation_y: str):
+        """Update camera position and orientation data"""
+        if not self.connection_pool:
+            raise Exception("Database connection pool not provided")
+
+        query = """
+            UPDATE camera 
+            SET 
+                position_longitude = $3,
+                position_latitude = $4,
+                position_height = $5,
+                orientation_z = $6,
+                orientation_y = $7
+            WHERE camera_name = $1 AND place_name = $2
+        """
+        
+        try:
+            async with self.connection_pool.acquire() as connection:
+                result = await connection.execute(
+                    query, camera_name, place_name, position_longitude, position_latitude, 
+                    position_height, orientation_z, orientation_y
+                )
+                
+                # Check if any rows were updated
+                rows_affected = int(result.split()[-1]) if result else 0
+                
+                if rows_affected > 0:
+                    print(f"Camera position updated successfully: {camera_name} - {rows_affected} record(s) updated")
+                    return rows_affected
+                else:
+                    raise Exception(f"Camera '{camera_name}' not found")
+                
+        except Exception as e:
+            print(f"Error updating camera position: {e}")
             raise
 
 

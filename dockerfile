@@ -2,9 +2,8 @@ FROM python:3
 
 RUN pip install fastapi 
 RUN pip install uvicorn
-RUN pip install python-multipart
 
-WORKDIR /fast_api_tut
+WORKDIR /avisense_backend
 COPY . .
 
 EXPOSE 8000

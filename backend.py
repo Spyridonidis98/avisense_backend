@@ -2,14 +2,19 @@ from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 import base64
 from database.sql.client import create_db_pool, SQLClient
-
+from ml.ml import ML
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    #database connection
     global sql_client
     pool = await create_db_pool()
     sql_client = SQLClient(pool)
+    
+    #ml connection
+    global ml_client
+    ml_client = ML(sql_client)
     
     yield  # App runs here
     
@@ -89,13 +94,11 @@ async def get_camera_frame(data: dict):
         return {
             'success': True,
             'cameras': cameras,
-            'place': place
         }
     except Exception as e:
         return {
             'success': False,
             'error': str(e),
-            'place': place
         }
 
 @app.get("/get-places")
@@ -161,4 +164,55 @@ async def load_place(data: dict):
             }
         )
 
+@app.post("/save-camera-position")
+async def save_camera_position(data: dict):
+    camera_name = data['camera_name']
+    place_name = data['place_name']
+    position_latitude = data['position_latitude']
+    position_longitude = data['position_longitude']
+    position_height = data['position_height']
+    orientation_z = data['orientation_z']
+    orientation_y = data['orientation_y']
+    
+    try:
+        rows_affected = await sql_client.save_camera_position(
+            camera_name=camera_name,
+            place_name=place_name,
+            position_height=position_height,
+            position_latitude=position_latitude,
+            position_longitude=position_longitude,
+            orientation_z=orientation_z,
+            orientation_y=orientation_y
+        )
+        
+        return {
+            'success': True,
+            'message': f'Camera position updated successfully for "{camera_name}"',
+            'camera_name': camera_name,
+            'rows_affected': rows_affected
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=404 if "not found" in str(e).lower() else 500,
+            detail={
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to update camera position for "{camera_name}"'
+            }
+        )
+
+@app.post("/get-cameras-projection-on-map")
+async def get_cameras_projection_on_map(data: dict):
+    place_name = data['place_name']
+    try:
+        projection_image = await ml_client.get_cameras_projection_on_map(place_name)
+        return {
+            'success': True,
+            'projection_image': projection_image
+        }   
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e),
+        }
 # run locally : uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
