@@ -10,6 +10,6 @@ services:
     ports:
       - "8000:8000"
 
-#run: sudo docker compose up -d --build --force-recreate 
+#run: sudo docker compose up -d --build --force-recreate avisense_backend
 # run locally : uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
 

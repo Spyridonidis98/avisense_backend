@@ -1,15 +1,19 @@
 import asyncpg
 from typing import Optional
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 async def create_db_pool():
     """Create and return a PostgreSQL connection pool"""
     db_config = {
-        'host': os.getenv('DB_HOST', 'localhost'),
-        'port': os.getenv('DB_PORT', 5432),
-        'user': os.getenv('DB_USER', 'avisense'),
-        'password': os.getenv('DB_PASSWORD', 'avisense_1234'),
-        'database': os.getenv('DB_NAME', 'postgres_db')
+        'host': os.getenv('DB_HOST', os.getenv('SQL_DATABASE_HOST')),
+        'port': os.getenv('DB_PORT',  os.getenv('SQL_DATABASE_PORT')),
+        'user': os.getenv('DB_USER', os.getenv('SQL_DATABASE_USER')),
+        'password': os.getenv('DB_PASSWORD', os.getenv('SQL_DATABASE_PASSWORD')),
+        'database': os.getenv('DB_NAME', os.getenv('SQL_DATABASE_NAME'))
     }
     
     try:

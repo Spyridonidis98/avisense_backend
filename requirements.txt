@@ -11,3 +11,5 @@ torch
 torchvision 
 torchaudio
 
+python-dotenv
+
