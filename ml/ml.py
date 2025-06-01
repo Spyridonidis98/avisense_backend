@@ -230,6 +230,8 @@ class ML:
         
         #get cameras data in that place 
         cameras= await self.sql_client.get_camera_frame(place_name)
+        #filter out cameras that dont have a position 
+        cameras = {k: v for k, v in cameras.items() if v['position_latitude'] and v['position_longitude'] and v['position_height'] and v['orientation_z'] and v['orientation_y']}
         
         #create an empty pygame surface 
         lifted_cameras_surface = pygame.Surface((1024, 1024))

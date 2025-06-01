@@ -1,7 +1,8 @@
-FROM python:3
+FROM python:3.8
 
-RUN pip install fastapi 
-RUN pip install uvicorn
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 WORKDIR /avisense_backend
 COPY . .

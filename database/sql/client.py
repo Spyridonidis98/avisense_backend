@@ -212,4 +212,31 @@ class SQLClient:
             print(f"Error updating camera position: {e}")
             raise
 
+    async def delete_camera(self, camera_name: str, place_name: str):
+        """Delete a camera record from the database"""
+        if not self.connection_pool:
+            raise Exception("Database connection pool not provided")
+
+        query = """
+            DELETE FROM camera 
+            WHERE camera_name = $1 AND place_name = $2
+        """
+        
+        try:
+            async with self.connection_pool.acquire() as connection:
+                result = await connection.execute(query, camera_name, place_name)
+                
+                # Check if any rows were deleted
+                rows_affected = int(result.split()[-1]) if result else 0
+                
+                if rows_affected > 0:
+                    print(f"Camera deleted successfully: {camera_name} at {place_name} - {rows_affected} record(s) deleted")
+                    return rows_affected
+                else:
+                    raise Exception(f"Camera '{camera_name}' at place '{place_name}' not found")
+                
+        except Exception as e:
+            print(f"Error deleting camera: {e}")
+            raise
+
 

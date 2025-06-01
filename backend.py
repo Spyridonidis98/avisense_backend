@@ -101,6 +101,25 @@ async def get_camera_frame(data: dict):
             'error': str(e),
         }
 
+@app.delete("/delete-camera")
+async def delete_camera(data: dict):
+    camera_name = data['camera_name']
+    place_name = data['place_name']
+    
+    try:
+        await sql_client.delete_camera(camera_name, place_name)
+        return {
+            'success': True,
+            'message': f'Camera "{camera_name}" deleted successfully from place "{place_name}"'
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e),
+            'message': f'Failed to delete camera "{camera_name}" from place "{place_name}"'
+        }
+
+
 @app.get("/get-places")
 async def get_places():
     try:

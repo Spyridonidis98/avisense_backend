@@ -1,8 +1,13 @@
 #use python 3.8 carla only supports python 3.8
 fastapi 
 uvicorn
+
 carla==0.9.13
-numpy 
-torch
 asyncpg #for postgres
 pygame
+
+numpy 
+torch 
+torchvision 
+torchaudio
+
